@@ -16,6 +16,17 @@
         #messageArea {
             display: none;
         }
+        .message {
+            overflow-wrap: break-word;
+            margin-bottom: 2px;
+        }
+        #chat-box {
+            min-width: 100px;
+            max-height: 100px;
+            overflow-y: scroll;
+            border: 1px solid rgb(223, 223, 223);
+            border-radius: 5px;
+        }
     </style>
     <body>
         <div class="container">
@@ -23,7 +34,7 @@
                 <div class="col-md-12">
                     <form id="userForm">
                         <div class="form-group">
-                            <label>Enter Username</label>
+                            <label>Enter Name:</label>
                             <input class="form-control" id="username"/>
                             <br />
                             <input type="submit" class="btn btn-primary" value="Login"/>
@@ -37,7 +48,9 @@
                     <ul class="list-group" id="users"></ul>
                 </div>
                 <div class="col-md-8">
-                    <div class="chat" id="chat"></div>
+                    <div id="chat-box">
+                        <div class="chat" id="chat"></div>
+                    </div>
 
                     <form id="messageForm">
                         <div class="form-group">
@@ -53,7 +66,7 @@
 
         <script>
             $(function(){
-                const socket = io.connect();
+                const socket = io('/chat');
                 const $messageForm = $('#messageForm');
                 const $message = $('#message');
                 const $chat = $('#chat');
@@ -63,35 +76,50 @@
                 const $users = $('#users');
                 const $username = $('#username');
 
+                // Handle message submit event
                 $messageForm.submit((e) => {
                     e.preventDefault();
+                    // Emit new message
                     socket.emit('send message', $message.val());
+                    // Clear message box
                     $message.val('');
                 });
 
-                socket.on('new message', (data) => {
-                    $chat.append('<div class="well"><strong>'
-                        +data.user+'</strong>: '+data.msg+'</div>');
+                // Handle message output event
+                socket.on('output', (messages) => {
+                    // Iterate over array message data
+                    messages.map((data) => {
+                        // Display message to chat
+                        $chat.append('<div class="message well"><strong style="text-align: left">'
+                        +data.username+'</strong><p class="pull-right" style="display: inline-block;text-align: left">'
+                        +data.time+'</p><p style="display: block">'+data.message+'</p></div>');
+                    });
                 });
 
+                // Handle username submit event
                 $userForm.submit((e) => {
                     e.preventDefault();
+                    // Emit new user
                     socket.emit('new user', $username.val(), (data) => {
+                        // Condition hide user form and show message form
                         if (data) {
                             $userFormArea.hide();
                             $messageArea.show();
                         }
                     });
+                    // Clear username input
                     $username.val('');
                 });
 
+                // Handle get users
                 socket.on('get users', (data) => {
+                    // Display users to html
                     let html = '';
                     for (var i = 0; i < data.length; i++) {
                         html += '<li class="list-group-item">'+data[i]+'</li>';
                     }
                     $users.html(html);
-                })
+                });
             });
         </script>
     </body>

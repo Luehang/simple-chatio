@@ -10,7 +10,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "socket.io": "*",
-    "express": "*"
+    "bluebird": "^3.5.1",
+    "dotenv": "^4.0.0",
+    "express": "*",
+    "mongoose": "^4.13.1",
+    "socket.io": "*"
   }
 }
